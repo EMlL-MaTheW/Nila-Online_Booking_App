@@ -75,14 +75,14 @@ const PatientDetails: React.FC<PatientDetailsProps> = ({
       </div>
 
       {/* Buttons */}
-      {/* <div className="flex gap-4 pt-4">
+      <div className="flex gap-4 pt-4">
         <button
           onClick={submit}
           className="flex-1 bg-gradient-to-r from-orange-500 to-orange-600 text-white py-4 px-6 rounded-xl font-semibold text-lg shadow-xl hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-orange-500"
         >
           Confirm & Continue
         </button>
-      </div> */}
+      </div>
     </div>
   );
 };

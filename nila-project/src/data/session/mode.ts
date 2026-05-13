@@ -15,13 +15,13 @@ export const mode: Category[] = [
     bgColor: 'bg-amber-100',
   },
   {
-    title: 'Video Call ',
+    title: 'Video-Call',
     icon: 'fa-solid fa-video text-red-600',
     color: 'text-pink-600',
     bgColor: 'bg--100'
   },
   {
-    title: 'Phone-call ',
+    title: 'Phone-call',
     icon: 'fa-solid fa-phone text-teal-600',
     color: 'teal-600',
     bgColor: 'bg-teal-100'

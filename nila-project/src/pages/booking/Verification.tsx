@@ -1,7 +1,7 @@
 import { useParams, useNavigate, useLocation } from "react-router-dom";
-import { expertsData } from '../../data/experts';
-import React, { useState, useMemo } from 'react';
-
+// import { expertsData } from '../../data/experts';
+import React, { useState, useEffect } from 'react';
+import API from '../../services/api';
 
 interface BookingData {
   slot?: string;
@@ -42,42 +42,72 @@ const sessionData = {
   
   // State management
   const [step, setStep] = useState<'phone' | 'otp' | 'confirm'>('phone');
-  const [phoneNumber, setPhoneNumber] = useState('+91 9999999999'); // Default
+  const [phoneNumber, setPhoneNumber] = useState("");
   const [otp, setOtp] = useState('');
-  const [sentOtp, setSentOtp] = useState('123456'); // Mock OTP
+  // const [sentOtp, setSentOtp] = useState('123456'); // Mock OTP
+  const [sentOtp] = useState('123456'); // Mock OTP
 
-  const allExperts = useMemo(() => {
-    return expertsData.flatMap(category => category.experts);
+  const [expert, setExpert] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+
+  // FETCH USER PROFILE
+  useEffect(() => {
+    fetchUserProfile();
   }, []);
 
-  const expert = allExperts.find(e => e.id === id);
+  const fetchUserProfile = async () => {
+    try {
+      const res = await API.get("/profile/");
+
+      setPhoneNumber(res.data.mobile || "");
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  useEffect(() => {
+    fetchExpert();
+  }, [id]);
+
+  const fetchExpert = async () => {
+    try {
+      const res = await API.get(`/counselors/${id}/`);
+      setExpert(res.data);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+
+  if (loading) {
+    return <p className="text-center py-20">Loading...</p>;
+  }
 
   if (!expert) {
     return (
-      <div className="min-h-screen bg-gray-50 py-12">
-        <div className="max-w-4xl mx-auto px-6">
-          <p className="text-center text-xl text-gray-500 bg-white rounded-2xl p-12 shadow-lg">
-            Expert not found
-          </p>
-          <button 
-            onClick={() => navigate('/experts')} 
-            className="bg-green-600 text-white px-6 py-2 rounded-full font-semibold hover:bg-green-700 mt-8 block mx-auto transition-all"
-          >
-            Back to Experts
-          </button>
-        </div>
+      <div className="text-center py-20">
+        <p>Expert not found</p>
       </div>
     );
   }
-
   // Mock OTP verification
-  const verifyOtp = () => {
-    if (otp === sentOtp) {
-      setStep('confirm');
-    } else {
-      alert('Invalid OTP! Mock OTP is: 123456');
+  const verifyOtp = async () => {
+  if (otp === sentOtp) {
+    try {
+      await API.put("/profile/", {
+        mobile: phoneNumber
+      });
+      setStep("confirm");
+    } catch (err) {
+      console.error(err);
+      alert("Failed to save mobile number");
     }
-  };
+  } else {
+    alert("Invalid OTP! Mock OTP is: 123456");
+  }
+};
 
   return (
     <div className="max-w-8xl mx-auto px-6 py-10 min-h-screen bg-[#f2fff2]">
@@ -106,7 +136,7 @@ const sessionData = {
                   type="tel"
                   placeholder="Enter your mobile number"
                   className="w-full pl-14 pr-6 py-4 rounded-xl border-2 border-gray-200 focus:border-green-600 focus:outline-none text-gray-700 font-medium transition-all duration-300 bg-white shadow-sm hover:shadow-md hover:cursor-pointer"
-                  // value={phoneNumber}
+                  value={phoneNumber}
                   onChange={(e) => setPhoneNumber(e.target.value)}
                 />
               </div>
@@ -183,7 +213,7 @@ const sessionData = {
 
               <div className="bg-green-50 border-2 border-green-200 rounded-2xl p-6 mb-8">
                 <p className="text-sm text-green-800 mb-2">Session Details:</p>
-                <p className="font-semibold text-lg">₹{expert.price} • 50 mins</p>
+                <p className="font-semibold text-lg">₹{expert.price} • 30 mins</p>
               </div>
 
             <button

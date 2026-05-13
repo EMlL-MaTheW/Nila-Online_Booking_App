@@ -1,9 +1,20 @@
 // Attached <Link> for all navigations.   
 import React, { useState, useEffect } from 'react';
-import { Link } from "react-router-dom";
+import { Link,useNavigate } from "react-router-dom";
 
 const Navbar: React.FC = () => {
   const [isScrolled, setIsScrolled] = useState(false);
+  const navigate = useNavigate();
+
+  const user = localStorage.getItem("user");
+
+  const handleLogout = () => {
+    localStorage.removeItem("access");
+    localStorage.removeItem("refresh");
+    localStorage.removeItem("user");
+
+    navigate("/");
+  };
 
   useEffect(() => {
     const handleScroll = () => {
@@ -77,12 +88,34 @@ const Navbar: React.FC = () => {
             </Link>
           </nav>
           {/* Sign in */}
-          <Link
-            to="/signin"
-            className="bg-gradient-to-r from-[#247336] to-emerald-600 text-white px-6 py-2.5 rounded-full font-semibold hover:shadow-lg hover:scale-105 active:scale-95 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 shadow-md"
-          >
-            Sign In
-          </Link>
+          <div className="flex items-center gap-3">
+
+            {user ? (
+              <>
+                <Link
+                  to="/userdashboard"
+                  className="text-gray-700 hover:text-[#247336] font-medium transition"
+                >
+                  Dashboard
+                </Link>
+
+                <button
+                  onClick={handleLogout}
+                  className="bg-red-500 text-white px-5 py-2 rounded-full font-semibold hover:bg-red-600 transition"
+                >
+                  Logout
+                </button>
+              </>
+            ) : (
+              <Link
+                to="/signin"
+                className="bg-gradient-to-r from-[#247336] to-emerald-600 text-white px-6 py-2.5 rounded-full font-semibold hover:shadow-lg hover:scale-105 active:scale-95 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 shadow-md"
+              >
+                Sign In
+              </Link>
+            )}
+
+          </div>
         </div>
       </div>
     </header>

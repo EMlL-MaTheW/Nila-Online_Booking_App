@@ -2,26 +2,40 @@ import { Routes, Route } from "react-router-dom";
 import Navbar from "./components/Navbar";
 import Home from "./pages/Home";
 import BookingSession from './pages/BookingSession'
-import Verifivation from './pages/booking/Verification'
+import Verification from './pages/booking/Verification'
 import PaymentPage from "./pages/Payment";
+import Register from "./pages/signIn/UserRegister";
 
 import "./app.css";
-import UserDashboard from "./pages/UserDashboard";
+import UserDashboard from "./pages/userdashboard/UserDashboard";
+import SignIn from "./pages/signIn/SignIn"
+
+import ScrollToTop from "./components/ScrollToTop";
+import ProtectedRoute from "./routes/ProtectedRoute";
 
 // Main App Component
 const App: React.FC = () => {
   return (
     <>
+    <ScrollToTop/>
       <Navbar />
       <Routes>
         <Route path="/" element={<Home />} />
+        <Route element = {<ProtectedRoute/>}>
         <Route path="booking/" element={<BookingSession />} />
+        </Route>
+
+        <Route element={<ProtectedRoute/>}>
         <Route path="/booking/:id" element={<BookingSession />} />
-        <Route path="/book/:id" element={<Verifivation />} />
+        </Route>
+
+        <Route path="/book/:id" element={<Verification />} />
         <Route path="/payment" element={<PaymentPage />} />
         <Route path="/payment/:id" element={<PaymentPage />} />
+        <Route path="/register" element={<Register />} />
 
-        <Route path="dashboard/" element={<UserDashboard />} />
+        <Route path="userdashboard/" element={<UserDashboard />} />
+        <Route path="signin/" element={<SignIn />} />
       </Routes>
     </>
   );

@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { expertsData } from '../../data/experts'; // Adjust path
+import { expertsData } from '../../data/experts';
 import { useMemo } from 'react';
 
 interface BookingSummaryProps {

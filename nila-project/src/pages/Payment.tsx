@@ -1,7 +1,7 @@
-import React, { useState, useMemo } from 'react';
-import { useParams, useNavigate, useLocation } from 'react-router-dom';
-import { expertsData } from '../data/experts';
+import React, { useState, useEffect } from 'react';
+import { useParams, useLocation } from 'react-router-dom';
 import PaymentProcess from './payment/PaymentProcess';
+import API from '../services/api';
 
 interface PatientData {
   name: string;
@@ -16,13 +16,15 @@ interface BookingData {
 
 const PaymentPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
-  const navigate = useNavigate();
+  // const navigate = useNavigate();
   const location = useLocation();
 
   // Patient data state
   const [patientData, setPatientData] = useState<PatientData>({ name: '', contact: '' });
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+  // const [loading, setLoading] = useState(false);
+  // const [error, setError] = useState('');
+  // const [loading] = useState(false);
+  const [error] = useState('');
 
   //payment process button
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
@@ -30,32 +32,39 @@ const PaymentPage: React.FC = () => {
   // Get booking data from previous page via location.state
   const bookingData = (location.state as BookingData) || {};
   const sessionData = {
-    date: bookingData.date || 'Jun 2026',
-    time: bookingData.slot || '10:30 AM',
+    date: bookingData.date || '',
+    time: bookingData.slot || '',
     duration: '50 mins',
-    mode: bookingData.mode || 'Video Call',
+    mode: bookingData.mode || 'Video-Call',
   };
 
-  const allExperts = useMemo(() => {
-    return expertsData.flatMap(category => category.experts);
-  }, []);
+const [expert, setExpert] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
 
-  const expert = allExperts.find(e => e.id === id);
+  useEffect(() => {
+    fetchExpert();
+  }, [id]);
+
+  const fetchExpert = async () => {
+    try {
+      const res = await API.get(`/counselors/${id}/`);
+      setExpert(res.data);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+
+  if (loading) {
+    return <p className="text-center py-20">Loading...</p>;
+  }
 
   if (!expert) {
     return (
-      <div className="min-h-screen bg-gray-50 py-12 px-6">
-        <div className="max-w-4xl mx-auto">
-          <p className="text-center text-xl text-gray-500 bg-white rounded-2xl p-12 shadow-lg">
-            Expert not found
-          </p>
-          <button
-            onClick={() => navigate("/experts")}
-            className="bg-green-600 text-white px-6 py-2 rounded-full font-semibold hover:bg-green-700 mt-8 block mx-auto transition-all"
-          >
-            Back to Experts
-          </button>
-        </div>
+      <div className="text-center py-20">
+        <p>Expert not found</p>
       </div>
     );
   }
@@ -63,29 +72,37 @@ const PaymentPage: React.FC = () => {
   const consultationFee = expert.price || 1200;
   const platformFee = 0;
   const totalAmount = consultationFee + platformFee;
+  
+  const handleBookingConfirm = async () => {
+    try {
 
-  const handleSubmit = async () => {
-    // Validation
-    if (!patientData.name.trim() || !patientData.contact.trim()) {
-      setError("Please fill all fields");
-      return;
+      const bookingPayload = {
+        counselor: expert.id,
+        user_name: patientData.name,
+        email: patientData.contact,
+        mode: sessionData.mode,
+        amount: totalAmount,
+        payment_status: "paid",
+        status: "booked",
+        date: sessionData.date,
+        time: sessionData.time,
+      };
+
+      const res = await API.post("/bookings/", bookingPayload);
+      console.log("Booking Saved:", res.data);
+
+      return res.data;
+
+    } catch (err: any) {
+      console.error(err);
+
+      console.log(err.response?.data);
+
+      alert(JSON.stringify(err.response?.data));
+
+      throw err;
     }
-
-    if (patientData.contact.length < 10) {
-      setError("Contact must be at least 10 characters");
-      return;
-    }
-
-    setError('');
-    setLoading(true);
-
-    // Mock API call
-    setTimeout(() => {
-      setLoading(false);
-      navigate('/payment-confirm'); // Navigate to confirmation
-    }, 1500);
   };
-
   return (
     <div className="max-w-7xl mx-auto px-6 py-6 min-h-screen bg-[#f2fff2]">
       <div className="grid grid-cols-1 lg:grid-cols- gap-10">
@@ -208,29 +225,6 @@ const PaymentPage: React.FC = () => {
               </div>
             </div>
 
-            {/* Confirm Button */}
-            {/* <button 
-              onClick={handleSubmit}
-              disabled={loading}
-              className={`w-full ${loading ? 'bg-gray-400 cursor-not-allowed' : 'bg-gradient-to-r from-emerald-600 to-green-700 hover:shadow-3xl hover:-translate-y-1'} text-white py-5 rounded-3xl font-bold text-lg shadow-2xl transition-all duration-300 flex items-center justify-center gap-2 disabled:shadow-none`}
-            >
-              {loading ? (
-                <>
-                  <svg className="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                  </svg>
-                  Processing...
-                </>
-              ) : (
-                <>
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
-                  </svg>
-                  Confirm & Pay ₹{totalAmount}
-                </>
-              )}
-            </button> */}
             <button 
               onClick={() => setIsPaymentModalOpen(true)}  // Opens modal 
               disabled={loading || !patientData.name || !patientData.contact}  // Validates form
@@ -263,14 +257,15 @@ const PaymentPage: React.FC = () => {
       </div>
 
       <PaymentProcess
-  isOpen={isPaymentModalOpen}
-  onClose={() => setIsPaymentModalOpen(false)}
-  onConfirm={() => navigate("/booking/success")}
-  patientData={patientData}
-  expert={{ name: expert.name, title: expert.title }}
-  sessionData={sessionData}
-  totalAmount={totalAmount}
-/>
+        isOpen={isPaymentModalOpen}
+        onClose={() => setIsPaymentModalOpen(false)}
+        // onConfirm={() => navigate("/booking/success")}
+        onConfirm={handleBookingConfirm}
+        patientData={patientData}
+        expert={{ name: expert.name, title: expert.title }}
+        sessionData={sessionData}
+        totalAmount={totalAmount}
+      />
 
 
     </div>

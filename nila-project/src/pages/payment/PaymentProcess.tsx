@@ -4,6 +4,8 @@ import AnimatedCard from "../payment/AnimatedCard";
 import OtpAnimation from "../payment/OtpAnimation";
 // import OtpSheet from "../payment/OtpSheet";
 import PaymentSuccessAnimation from "../payment/PaymentSuccessAnimation";
+import { useNavigate } from "react-router-dom";
+
 
 interface PaymentProcessProps {
   isOpen: boolean;
@@ -12,6 +14,16 @@ interface PaymentProcessProps {
   patientData: {
     name: string;
     contact: string;
+  };
+    expert: {              
+    name: string;
+    title: string;
+  };
+    sessionData: {
+    date: string;
+    time: string;
+    duration: string;
+    mode: string;
   };
   totalAmount?: number;
 }
@@ -23,6 +35,9 @@ const PaymentProcess: React.FC<PaymentProcessProps> = ({
   patientData,
   totalAmount = 1600,
 }) => {
+
+  const navigate = useNavigate();
+
   const [selectedMethod, setSelectedMethod] = useState("card");
 
   const [step, setStep] = useState<"payment" |"animating" | "otp" | "success">("payment");
@@ -31,11 +46,26 @@ const PaymentProcess: React.FC<PaymentProcessProps> = ({
   //OtpSheet
   // const [showOtp, setShowOtp] = useState(false);
 
-  const onVerify = () => {
-    if (otp === MOCK_OTP) {
-      setStep("success"); // 👉 show animation
-    } else {
+  // const onVerify = () => {
+  //   if (otp === MOCK_OTP) {
+  //     setStep("success");
+  //   } else {
+  //     alert("Invalid OTP. Try 123456");
+  //   }
+  // };
+  const onVerify = async () => {
+
+  if (otp !== MOCK_OTP) {
       alert("Invalid OTP. Try 123456");
+      return;
+    }
+
+    try {
+      await onConfirm();
+      setStep("success");
+    } catch (err) {
+      console.error(err);
+      alert("Payment failed");
     }
   };
 
@@ -91,16 +121,8 @@ const PaymentProcess: React.FC<PaymentProcessProps> = ({
                 {patientData.contact}
               </span>
               
-            </div>
-
-               
+            </div>              
           </div>
-          {/* <div className="flex items-center justify-center">
-           <div>
-                <img className="w- object-cover rounded-x1" src= {Img}
-                />
-            </div>
-            </div> */}
 
           <div className="text-xs text-gray-300 mt-4">
             Secured by <span className="font-semibold">Razorpay</span>
@@ -223,13 +245,7 @@ const PaymentProcess: React.FC<PaymentProcessProps> = ({
                 "
               >
                 Continue
-              </button>
-              {/* <button
-                onClick={() => setShowOtp(true)}
-                className="w-full bg-[#0b3b32] text-white py-3 rounded-lg font-semibold"
-              >
-                Continue
-              </button> */}
+              </button>         
 
             </div>
           </div>
@@ -244,28 +260,13 @@ const PaymentProcess: React.FC<PaymentProcessProps> = ({
             </div>
           )}
 
-          {/* {step === "otp" && (
-            <OtpAnimation
-              otp={otp}
-              setOtp={setOtp}
-              contact={patientData.contact}
-              totalAmount={totalAmount}
-              onVerify={() => {
-                if (otp === MOCK_OTP) {
-                  onConfirm();
-                } else {
-                  alert("Invalid OTP. Try 123456");
-                }
-              }}
-            />
-          )} */}
           {step === "otp" && (
             <OtpAnimation
               otp={otp}
               setOtp={setOtp}
               contact={patientData.contact}
               totalAmount={totalAmount}
-              onVerify={onVerify}   // ✅ USE EXISTING FUNCTION
+              onVerify={onVerify}  
             />
           )}
 
@@ -273,30 +274,13 @@ const PaymentProcess: React.FC<PaymentProcessProps> = ({
           {step === "success" && (
             <PaymentSuccessAnimation
               onDone={() => {
-                onConfirm(); // final success (close modal / navigate)
+                // onConfirm(); // final success (close modal / navigate)
+                navigate("/userdashboard")
               }}
             />
           )}
-
-
         </div>
-
       </div>
-      {/* <OtpSheet
-        isOpen={showOtp}
-        otp={otp}
-        setOtp={setOtp}
-        contact={patientData.contact}
-        amount={totalAmount}
-        onVerify={() => {
-          if (otp === MOCK_OTP) {
-            onConfirm();
-          } else {
-            alert("Invalid OTP. Try 123456");
-          }
-        }}
-      /> */}
-
     </div>
   );
 };

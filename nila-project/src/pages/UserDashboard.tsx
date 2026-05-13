@@ -101,6 +101,7 @@ const PaymentDetails = () => (
 );
 
 const PersonalInfo = () => {
+  
   const [edit, setEdit] = useState(false);
 
   return (
@@ -109,12 +110,12 @@ const PersonalInfo = () => {
       <div className="bg-white rounded-xl p-4 shadow space-y-3">
         <input
           disabled={!edit}
-          className="w-full border rounded-lg p-2"
+          className="w-full  bg-gray-200 rounded-lg p-2"
           defaultValue="John Doe"
         />
         <input
           disabled={!edit}
-          className="w-full border rounded-lg p-2"
+          className="w-full bg-gray-200 rounded-lg p-2"
           defaultValue="+91 9999999999"
         />
         <button

@@ -1,8 +1,10 @@
-import React, { useMemo, useState } from "react";
+import React, {useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { expertsData } from "../data/experts";
+// import { expertsData } from "../data/experts";
 import { mode } from "../data/session/mode";
 import SlotSelection from "./booking/SlotSelection";
+import API from "../services/api"
+
 
 interface BookingData {
   slot?: string;
@@ -14,7 +16,7 @@ const BookingSession: React.FC = () => {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
 
-  const handleModeSelect = (selectedMode: string) => {
+const handleModeSelect = (selectedMode: string) => {
   setData(prev => ({
     ...prev,
     mode: selectedMode,
@@ -26,31 +28,58 @@ const BookingSession: React.FC = () => {
   // 🔹 SLOT STATE
   const [data, setData] = useState<BookingData>({});
   const [error, setError] = useState<string>("");
+  
+  const [expert, setExpert] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
 
-  const allExperts = useMemo(() => {
-    return expertsData.flatMap(category => category.experts);
-  }, []);
+  useEffect(() => {
+  fetchExpert();
+  }, [id]);
 
-  const expert = allExperts.find(e => e.id === id);
+  const fetchExpert = async () => {
+    try {
+      const res = await API.get(`/counselors/${id}/`);
+      setExpert(res.data);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+  // const allExperts = useMemo(() => {
+  //   return expertsData.flatMap(category => category.experts);
+  // }, []);
+
+  // const expert = allExperts.find(e => e.id === id);
+
+  // if (!expert) {
+  //   return (
+  //     <div className="min-h-screen bg-gray-50 py-12">
+  //       <div className="max-w-4xl mx-auto px-6">
+  //         <p className="text-center text-xl text-gray-500 bg-white rounded-2xl p-12 shadow-lg">
+  //           Expert not found
+  //         </p>
+  //         <button
+  //           onClick={() => navigate("/experts")}
+  //           className="bg-green-600 text-white px-6 py-2 rounded-full font-semibold hover:bg-green-700 mt-8 block mx-auto transition-all"
+  //         >
+  //           Back to Experts
+  //         </button>
+  //       </div>
+  //     </div>
+  //   );
+  // }
+  if (loading) {
+      return <p className="text-center py-20">Loading...</p>;
+  }
 
   if (!expert) {
     return (
-      <div className="min-h-screen bg-gray-50 py-12">
-        <div className="max-w-4xl mx-auto px-6">
-          <p className="text-center text-xl text-gray-500 bg-white rounded-2xl p-12 shadow-lg">
-            Expert not found
-          </p>
-          <button
-            onClick={() => navigate("/experts")}
-            className="bg-green-600 text-white px-6 py-2 rounded-full font-semibold hover:bg-green-700 mt-8 block mx-auto transition-all"
-          >
-            Back to Experts
-          </button>
-        </div>
+      <div className="text-center py-20">
+        <p>Expert not found</p>
       </div>
     );
   }
-
   return (
     <div className="max-w-8xl mx-auto px-6 py-10 min-h-screen bg-[#f2fff2]">
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
@@ -71,7 +100,7 @@ const BookingSession: React.FC = () => {
               </h1>
               <p className="text-xl text-gray-600 mb-3">{expert.title}</p>
               <span className="inline-block bg-green-100 text-green-800 px-4 py-2 rounded-full text-sm font-semibold">
-                {expert.experience}
+                {expert.experience} years
               </span>
             </div>
           </div>
@@ -126,7 +155,7 @@ const BookingSession: React.FC = () => {
 
           {/* Slot Selection Component (Time & Date) */}
              <SlotSelection
-              data={data}
+               data={{ ...data, counselorId: expert.id }}
               setData={setData}
               setError={setError}
             />
@@ -161,11 +190,11 @@ const BookingSession: React.FC = () => {
               </p>
               <span className="text-lg font-semibold text-blue-700">
                 {data.mode ?? "Please select a mode"}
-              </span>
+              </span>/
 
               <span className="text-lg font-semibold text-blue-700">
                 {data.date ?? "Please select a Date"}
-              </span>
+              </span>/
 
               <span className="text-lg font-semibold text-green-700">
                 {data.slot ?? "Please select a slot"}
