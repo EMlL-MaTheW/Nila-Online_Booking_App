@@ -4,7 +4,6 @@ from .serializers import *
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import viewsets
-from .models import Counselor, Booking
 from .serializers import CounselorSerializer, BookingSerializer
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -13,10 +12,6 @@ from rest_framework import status
 from django.contrib.auth import authenticate
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.views import APIView
-
-# class CounselorViewSet(viewsets.ModelViewSet):
-#     queryset = Counselor.objects.all()
-#     serializer_class = PublicCounselorSerializer
 
 
 from rest_framework.permissions import IsAuthenticated
@@ -42,31 +37,6 @@ class BookingViewSet(viewsets.ModelViewSet):
             BookingSerializer(booking).data,
             status=status.HTTP_201_CREATED
         )
-        
-# class BookingViewSet(viewsets.ModelViewSet):
-#     queryset = Booking.objects.all()
-#     serializer_class = BookingSerializer
-#     permission_classes = [IsAuthenticated]
-
-#     def perform_create(self, serializer):
-
-#         counselor = serializer.validated_data["counselor"]
-#         date = serializer.validated_data["date"]
-#         time = serializer.validated_data["time"]
-
-#         exists = Booking.objects.filter(
-#             counselor=counselor,
-#             date=date,
-#             time=time,
-#             status="booked"
-#         ).exists()
-
-#         if exists:
-#             raise serializers.ValidationError(
-#                 {"error": "Slot already booked"}
-#             )
-
-#         serializer.save(user=self.request.user)
     
 # ADMIN COUNSELOR 
 class AdminCounselorViewSet(viewsets.ModelViewSet):
@@ -96,56 +66,127 @@ class AvailabilityViewSet(viewsets.ModelViewSet):
 class CounselorViewSet(viewsets.ModelViewSet):
     queryset = Counselor.objects.all()
     serializer_class = PublicCounselorSerializer
-
     @action(detail=True, methods=["get"])
     def available_slots(self, request, pk=None):
+
         date_str = request.query_params.get("date")
-
-        if not date_str:
-            return Response({"error": "Date required"}, status=400)
-
         try:
-            date_obj = datetime.datetime.strptime(date_str, "%Y-%m-%d").date()
-            day_name = date_obj.strftime("%a").lower()  # mon, tue...
 
-            # 1️⃣ Get availability for that day
-            availabilities = Availability.objects.filter(
-                counselor_id=pk,
-                day_of_week=day_name
+            if date_str:
+                check_dates = [
+                    datetime.datetime.strptime(
+                        date_str,
+                        "%Y-%m-%d"
+                    ).date()
+                ]
+            else:
+
+                today = datetime.date.today()
+                check_dates = [
+                    today + datetime.timedelta(days=i)
+                    for i in range(7)
+                ]
+            for date_obj in check_dates:
+                day_name = date_obj.strftime("%a").lower()
+                availabilities = Availability.objects.filter(
+                    counselor_id=pk,
+                    day_of_week=day_name
+                )
+                if not availabilities.exists():
+                    continue
+                booked_slots = Booking.objects.filter(
+                    counselor_id=pk,
+                    date=date_obj,
+                    status="booked"
+                ).values_list("time", flat=True)
+
+                booked_times = set(
+                    t.strftime("%H:%M")
+                    for t in booked_slots
+                )
+                free_slots = []
+                for a in availabilities:
+                    current_time = datetime.datetime.combine(
+                        date_obj,
+                        a.start_time
+                    )
+
+                    end_time = datetime.datetime.combine(
+                        date_obj,
+                        a.end_time
+                    )
+                    while current_time < end_time:
+                        slot_str = current_time.strftime("%H:%M")
+                        if slot_str not in booked_times:
+                            free_slots.append(slot_str)
+
+                        current_time += datetime.timedelta(
+                            minutes=a.session_duration
+                        )
+
+                if free_slots:
+                    return Response({
+                        "date": date_obj,
+                        "slots": sorted(free_slots)
+                    })
+            return Response({
+                "date": None,
+                "slots": []
+            })
+        except Exception as e:
+            return Response(
+                {"error": str(e)},
+                status=500
             )
 
-            if not availabilities.exists():
-                return Response([])
+    # @action(detail=True, methods=["get"])
+    # def available_slots(self, request, pk=None):
+    #     date_str = request.query_params.get("date")
 
-            # 2️⃣ Get booked slots
-            booked_slots = Booking.objects.filter(
-                counselor_id=pk,
-                date=date_obj,
-                status="booked"
-            ).values_list("time", flat=True)
+    #     if not date_str:
+    #         return Response({"error": "Date required"}, status=400)
 
-            booked_times = set(t.strftime("%H:%M") for t in booked_slots)
+    #     try:
+    #         date_obj = datetime.datetime.strptime(date_str, "%Y-%m-%d").date()
+    #         day_name = date_obj.strftime("%a").lower()  # mon, tue...
 
-            # 3️⃣ Generate slots dynamically
-            free_slots = []
+    #         # Get availability for that day
+    #         availabilities = Availability.objects.filter(
+    #             counselor_id=pk,
+    #             day_of_week=day_name
+    #         )
 
-            for a in availabilities:
-                current_time = datetime.datetime.combine(date_obj, a.start_time)
-                end_time = datetime.datetime.combine(date_obj, a.end_time)
+    #         if not availabilities.exists():
+    #             return Response([])
 
-                while current_time < end_time:
-                    slot_str = current_time.strftime("%H:%M")
+    #         # Get booked slots
+    #         booked_slots = Booking.objects.filter(
+    #             counselor_id=pk,
+    #             date=date_obj,
+    #             status="booked"
+    #         ).values_list("time", flat=True)
 
-                    if slot_str not in booked_times:
-                        free_slots.append(slot_str)
+    #         booked_times = set(t.strftime("%H:%M") for t in booked_slots)
+    #         # Generate slots dynamically
+    #         free_slots = []
 
-                    # increment using session duration
-                    current_time += datetime.timedelta(minutes=a.session_duration)
+    #         for a in availabilities:
+    #             current_time = datetime.datetime.combine(date_obj, a.start_time)
+    #             end_time = datetime.datetime.combine(date_obj, a.end_time)
 
-            return Response(sorted(free_slots))
+    #             while current_time < end_time:
+    #                 slot_str = current_time.strftime("%H:%M")
 
-        except Exception as e:
-            return Response({"error": str(e)}, status=500)
+    #                 if slot_str not in booked_times:
+    #                     free_slots.append(slot_str)
+
+    #                 # increment using session duration
+    #                 current_time += datetime.timedelta(minutes=a.session_duration)
+
+    #         return Response(sorted(free_slots))
+
+    #     except Exception as e:
+    #         return Response({"error": str(e)}, status=500)
 # ADMIN BOOKING VIEW
 class AdminBookingViewSet(viewsets.ModelViewSet):
     queryset = Booking.objects.all()
@@ -182,7 +223,6 @@ def user_login(request):
         if not user:
             return Response({"error": "Invalid credentials"}, status=400)
 
-        # ❌ block admin
         if user.is_staff:
             return Response({"error": "Use admin login"}, status=403)
 
