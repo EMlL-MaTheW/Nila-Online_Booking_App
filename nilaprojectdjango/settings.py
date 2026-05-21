@@ -9,7 +9,8 @@ https://docs.djangoproject.com/en/6.0/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/6.0/ref/settings/
 """
-
+import dj_database_url
+import os
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -25,7 +26,7 @@ SECRET_KEY = 'django-insecure-@axi&ick4kz)18y2gys8$v3(3*u)a=o8_zv#+pe(kr3(758j%o
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ["*"]
+ALLOWED_HOSTS = ["https://nila-online-booking-app-1.onrender.com"]
 
 
 # Application definition
@@ -119,6 +120,22 @@ DATABASES = {
     }
 }
 
+# DATABASES = {
+#     "default": dj_database_url.parse(
+#         os.environ.get(
+#             "DATABASE_URL",
+#             "postgresql://postgres:postgresql@localhost:5432/Nila_DB"
+#         )
+#     )
+# }
+DATABASES = {
+    "default": dj_database_url.parse(
+        os.environ.get("DATABASE_URL",)
+)
+}
+
+#https://nila-online-booking-app-1.onrender.com
+#postgresql://nila_db_online_user:6mvZdwA3xX5LvegRELzSB7d6BLGTevxF@dpg-d85dcveq1p3s73f51i00-a.oregon-postgres.render.com/nila_db_online
 
 # Password validation
 # https://docs.djangoproject.com/en/6.0/ref/settings/#auth-password-validators
