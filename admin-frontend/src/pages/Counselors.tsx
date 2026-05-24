@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import API from "../services/api";
 import CounselorFormModal from "./CounselorFormModal";
 
@@ -124,6 +124,13 @@ export default function CounselorsPage() {
     setShowModal(true);
   };
 
+  if (loading) {
+    return (
+      <div className="p-10 text-center">
+        Loading counselors...
+      </div>
+    );
+  }
   return (
     <div>
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-8 gap-4">
