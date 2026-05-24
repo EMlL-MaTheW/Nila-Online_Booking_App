@@ -6,7 +6,7 @@ import Verification from './pages/booking/Verification'
 import PaymentPage from "./pages/Payment";
 import Register from "./pages/signIn/UserRegister";
 
-import "./app.css";
+import "./App.css";
 import UserDashboard from "./pages/userdashboard/UserDashboard";
 import SignIn from "./pages/signIn/SignIn"
 

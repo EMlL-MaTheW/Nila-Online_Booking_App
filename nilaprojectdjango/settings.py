@@ -26,8 +26,12 @@ SECRET_KEY = 'django-insecure-@axi&ick4kz)18y2gys8$v3(3*u)a=o8_zv#+pe(kr3(758j%o
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ["nila-online-booking-app-1.onrender.com"]
-
+# ALLOWED_HOSTS = ["nila-online-booking-app-1.onrender.com"]
+ALLOWED_HOSTS = [
+    "nila-online-booking-app-1.onrender.com",
+    "localhost",
+    "127.0.0.1",
+]
 
 # Application definition
 
