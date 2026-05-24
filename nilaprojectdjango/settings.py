@@ -89,6 +89,11 @@ CORS_ALLOWED_ORIGINS = [
     "https://nila-admin-dashboard.netlify.app",
 ]
 
+CSRF_TRUSTED_ORIGINS = [
+    "https://nila-consultancy-booking.netlify.app",
+    "https://nila-admin-dashboard.netlify.app",
+]
+
 ROOT_URLCONF = 'nilaprojectdjango.urls'
 
 TEMPLATES = [
