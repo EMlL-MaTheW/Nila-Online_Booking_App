@@ -9,8 +9,8 @@ https://docs.djangoproject.com/en/6.0/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/6.0/ref/settings/
 """
-import dj_database_url
 import os
+import dj_database_url
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -84,6 +84,11 @@ MIDDLEWARE = [
 
 CORS_ALLOW_ALL_ORIGINS = True
 
+CORS_ALLOWED_ORIGINS = [
+    " https://nila-consultancy-booking.netlify.app",
+    "https://nila-admin-dashboard.netlify.app",
+]
+
 ROOT_URLCONF = 'nilaprojectdjango.urls'
 
 TEMPLATES = [
@@ -113,16 +118,17 @@ WSGI_APPLICATION = 'nilaprojectdjango.wsgi.application'
 #         'NAME': BASE_DIR / 'db.sqlite3',
 #     }
 # }
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'Nila_DB',
-        'USER': 'postgres',
-        'PASSWORD': 'postgresql',
-        'HOST': 'localhost',
-        'PORT': '5432',
-    }
-}
+
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.postgresql',
+#         'NAME': 'Nila_DB',
+#         'USER': 'postgres',
+#         'PASSWORD': 'postgresql',
+#         'HOST': 'localhost',
+#         'PORT': '5432',
+#     }
+# }
 
 # DATABASES = {
 #     "default": dj_database_url.parse(
@@ -132,11 +138,18 @@ DATABASES = {
 #         )
 #     )
 # }
+
 DATABASES = {
     "default": dj_database_url.parse(
-        os.environ.get("DATABASE_URL",)
-)
+        os.environ.get("DATABASE_URL")
+    )
 }
+
+# DATABASES = {
+#     "default": dj_database_url.parse(
+#         "postgresql://nila_db_online_user:6mvZdwA3xX5LvegRELzSB7d6BLGTevxF@dpg-d85dcveq1p3s73f51i00-a.oregon-postgres.render.com/nila_db_online"
+#     )
+# }
 
 #https://nila-online-booking-app-1.onrender.com
 #postgresql://nila_db_online_user:6mvZdwA3xX5LvegRELzSB7d6BLGTevxF@dpg-d85dcveq1p3s73f51i00-a.oregon-postgres.render.com/nila_db_online
